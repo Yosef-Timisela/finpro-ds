@@ -43,30 +43,30 @@ model.fit(X, y)
 # ----------------------------
 # Streamlit App
 # ----------------------------
-st.title("Prediksi Deposit Nasabah (Bank Marketing Dataset)")
+st.markdown("<h1 style='text-align: center;'>Bank Term Deposit Prediction</h1>", unsafe_allow_html=True)
 
-st.subheader("Masukkan Data Nasabah:")
+st.subheader("Input Customer Data:")
 
 # Input form
 with st.form("form"):
-    age = st.number_input("Umur", min_value=18, max_value=100, value=30)
-    job = st.selectbox("Pekerjaan", df['job'].unique())
-    marital = st.selectbox("Status Pernikahan", df['marital'].unique())
-    education = st.selectbox("Pendidikan", df['education'].unique())
-    default = st.selectbox("Apakah memiliki kredit macet?", df['default'].unique())
-    balance = st.number_input("Saldo", value=1000)
-    housing = st.selectbox("Memiliki pinjaman rumah?", df['housing'].unique())
-    loan = st.selectbox("Memiliki pinjaman pribadi?", df['loan'].unique())
-    contact = st.selectbox("Jenis kontak", df['contact'].unique())
-    day = st.number_input("Hari (kontak terakhir)", min_value=1, max_value=31, value=15)
-    month = st.selectbox("Bulan (kontak terakhir)", df['month'].unique())
-    duration = st.number_input("Durasi kontak terakhir (detik)", value=100)
-    campaign = st.number_input("Jumlah kontak dalam kampanye ini", value=1)
-    pdays = st.number_input("Hari sejak kontak terakhir sebelumnya", value=999)
-    previous = st.number_input("Jumlah kontak sebelumnya", value=0)
-    poutcome = st.selectbox("Hasil kampanye sebelumnya", df['poutcome'].unique())
+    age = st.number_input("Age", min_value=18, max_value=100, value=30)
+    job = st.selectbox("Job", df['job'].unique())
+    marital = st.selectbox("Marital", df['marital'].unique())
+    education = st.selectbox("Education", df['education'].unique())
+    default = st.selectbox("is there any bad debt??", df['default'].unique())
+    balance = st.number_input("Account Balance", value=1000)
+    housing = st.selectbox("Housing Loan?", df['housing'].unique())
+    loan = st.selectbox("Personal Loan?", df['loan'].unique())
+    contact = st.selectbox("Contact type", df['contact'].unique())
+    day = st.number_input("Day (Last Contact)", min_value=1, max_value=31, value=15)
+    month = st.selectbox("Month (Last Contact)", df['month'].unique())
+    duration = st.number_input("Last Contact Duration (seconds)", value=100)
+    campaign = st.number_input("Number of contacts in this campaign", value=1)
+    pdays = st.number_input("Days since last previous contact", value=999)
+    previous = st.number_input("Number of previous contacts", value=0)
+    poutcome = st.selectbox("Previous campaign results", df['poutcome'].unique())
 
-    submit = st.form_submit_button("Prediksi")
+    submit = st.form_submit_button("Predict")
 
 if submit:
     # Bentuk input user menjadi dataframe
@@ -99,8 +99,8 @@ if submit:
     result = target_encoder.inverse_transform([prediction])[0]
 
     # Output
-    st.subheader("Hasil Prediksi:")
+    st.subheader("Prediction Result:")
     if result == 'yes':
-        st.success("🎉 Selamat! Deposit anda diterima.")
+        st.success("🎉 Congratulations! Your term deposit application has been accepted.")
     else:
-        st.error("❌ Mohon maaf, deposit anda tidak diterima.")
+        st.error("❌ Sorry, your term deposit application was not accepted.")

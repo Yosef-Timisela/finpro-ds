@@ -23,7 +23,7 @@ X = df[['age', 'job', 'marital', 'education', 'default', 'balance',
         'campaign', 'pdays', 'previous', 'poutcome']]
 y = df['deposit']
 
-# Label Encoding untuk fitur kategorikal
+# Label Encoding for categorical features
 categorical_cols = X.select_dtypes(include=['object']).columns
 encoders = {}
 
@@ -32,7 +32,7 @@ for col in categorical_cols:
     X[col] = le.fit_transform(X[col])
     encoders[col] = le
 
-# Encoding target
+# Encode target
 target_encoder = LabelEncoder()
 y = target_encoder.fit_transform(y)  # yes = 1, no = 0
 
@@ -47,60 +47,65 @@ st.markdown("<h1 style='text-align: center;'>Bank Term Deposit Prediction</h1>",
 
 st.subheader("Input Customer Data:")
 
-# Input form
-with st.form("form"):
-    age = st.number_input("Age", min_value=18, max_value=100, value=30)
-    job = st.selectbox("Job", df['job'].unique())
-    marital = st.selectbox("Marital", df['marital'].unique())
-    education = st.selectbox("Education", df['education'].unique())
-    default = st.selectbox("is there any bad debt??", df['default'].unique())
-    balance = st.number_input("Account Balance", value=1000)
-    housing = st.selectbox("Housing Loan?", df['housing'].unique())
-    loan = st.selectbox("Personal Loan?", df['loan'].unique())
-    contact = st.selectbox("Contact type", df['contact'].unique())
-    day = st.number_input("Day (Last Contact)", min_value=1, max_value=31, value=15)
-    month = st.selectbox("Month (Last Contact)", df['month'].unique())
-    duration = st.number_input("Last Contact Duration (seconds)", value=100)
-    campaign = st.number_input("Number of contacts in this campaign", value=1)
-    pdays = st.number_input("Days since last previous contact", value=999)
-    previous = st.number_input("Number of previous contacts", value=0)
-    poutcome = st.selectbox("Previous campaign results", df['poutcome'].unique())
+# Realtime Input Fields
+age = st.slider("Age", min_value=18, max_value=100, value=30)
+job = st.selectbox("Job", df['job'].unique())
+marital = st.radio("Marital", df['marital'].unique())
+education = st.radio("Education", df['education'].unique())
+default = st.radio("Is there any bad debt?", df['default'].unique())
+balance = st.slider("Account Balance", min_value=int(df['balance'].min()), max_value=int(df['balance'].max()), value=1000)
+housing = st.radio("Housing Loan?", df['housing'].unique())
+loan = st.radio("Personal Loan?", df['loan'].unique())
+contact = st.radio("Contact type", df['contact'].unique())
+day = st.slider("Day (Last Contact)", min_value=1, max_value=31, value=15)
+month_num = st.slider("Month (Last Contact)", min_value=1, max_value=12, value=6)
+duration = st.number_input("Last Contact Duration (seconds)", value=100)
+campaign = st.slider("Number of contacts in this campaign", min_value=1, max_value=50, value=1)
+pdays = st.slider("Days since last previous contact", min_value=0, max_value=999, value=999)
+previous = st.slider("Number of previous contacts", min_value=0, max_value=50, value=0)
+poutcome = st.radio("Previous campaign results", df['poutcome'].unique())
 
-    submit = st.form_submit_button("Predict")
+# Convert month number to label if categorical
+if 'month' in categorical_cols:
+    month_labels = encoders['month'].classes_
+    month = month_labels[month_num - 1] if 1 <= month_num <= 12 else 'may'
+else:
+    month = month_num
 
-if submit:
-    # Bentuk input user menjadi dataframe
-    user_input = pd.DataFrame([{
-        'age': age,
-        'job': job,
-        'marital': marital,
-        'education': education,
-        'default': default,
-        'balance': balance,
-        'housing': housing,
-        'loan': loan,
-        'contact': contact,
-        'day': day,
-        'month': month,
-        'duration': duration,
-        'campaign': campaign,
-        'pdays': pdays,
-        'previous': previous,
-        'poutcome': poutcome
-    }])
+# Create input dataframe
+user_input = pd.DataFrame([{
+    'age': age,
+    'job': job,
+    'marital': marital,
+    'education': education,
+    'default': default,
+    'balance': balance,
+    'housing': housing,
+    'loan': loan,
+    'contact': contact,
+    'day': day,
+    'month': month,
+    'duration': duration,
+    'campaign': campaign,
+    'pdays': pdays,
+    'previous': previous,
+    'poutcome': poutcome
+}])
 
-    # Encode input dengan encoder yang sama
-    for col in categorical_cols:
-        le = encoders[col]
-        user_input[col] = le.transform(user_input[col])
+# Encode categorical input
+for col in categorical_cols:
+    le = encoders[col]
+    user_input[col] = le.transform(user_input[col])
 
-    # Prediksi
-    prediction = model.predict(user_input)[0]
-    result = target_encoder.inverse_transform([prediction])[0]
+# Prediction and confidence
+prediction = model.predict(user_input)[0]
+proba = model.predict_proba(user_input)[0]
+result = target_encoder.inverse_transform([prediction])[0]
+confidence = proba[prediction] * 100  # percentage
 
-    # Output
-    st.subheader("Prediction Result:")
-    if result == 'yes':
-        st.success("🎉 Congratulations! Your term deposit application has been accepted.")
-    else:
-        st.error("❌ Sorry, your term deposit application was not accepted.")
+# Display result
+st.subheader("Prediction Result:")
+if result == 'yes':
+    st.success(f"🎉 Congratulations! Your term deposit application has been accepted.\n\n✅ Confidence: {confidence:.2f}%")
+else:
+    st.error(f"❌ Sorry, your term deposit application was not accepted.\n\n🧠 Confidence: {confidence:.2f}%")
